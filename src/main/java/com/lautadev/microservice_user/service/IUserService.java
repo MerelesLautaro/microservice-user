@@ -11,6 +11,8 @@ public interface IUserService {
     public List<User> getUsers();
     public User findUser(Long id);
     public void deleteUser(Long id);
-    public void editUser(User user);
+    public void editUser(Long id,User user);
     public UserDTO findUserAndBenefit(Long id);
+    public void assignBenefit(Long idUser, Long idBenefit,String methodOverride);
+    public void updateTickets(Long id, int ticket,String methodOverride);
 }

@@ -20,7 +20,7 @@ public class UserValidator {
 
     public void validate(User user) {
         if (user == null) {
-            throw new UserException("Benefit cannot be null");
+            throw new UserException("User cannot be null");
         }
 
         // Validaciones estándar usando Hibernate Validator

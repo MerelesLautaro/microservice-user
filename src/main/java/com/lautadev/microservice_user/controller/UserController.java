@@ -6,6 +6,7 @@ import com.lautadev.microservice_user.model.User;
 import com.lautadev.microservice_user.service.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,9 +49,35 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/edit")
-    public ResponseEntity<User> editUser(@Valid @RequestBody User user){
-        userServ.editUser(user);
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<User> editUser(@PathVariable Long id,@Valid @RequestBody User user){
+        userServ.editUser(id,user);
         return ResponseEntity.ok(userServ.findUser(user.getIdUser()));
+    }
+
+    @PostMapping("/updateTickets/{id}")
+    public ResponseEntity<User> updateTickets(@PathVariable Long id, @RequestBody int ticket,
+                                              @RequestHeader (value = "X-HTTP-Method-Override")
+                                              String methodOverride){
+        if ("PATCH".equalsIgnoreCase(methodOverride)){
+            userServ.updateTickets(id,ticket,methodOverride);
+            User user = userServ.findUser(id);
+            if(user == null) ResponseEntity.notFound().build();
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+        }
+    }
+
+    @PostMapping("/assignBenefit/{id}")
+    public ResponseEntity<UserDTO> updateTickets(@PathVariable Long id, @RequestBody Long idBenefit,
+                                                 @RequestHeader (value = "X-HTTP-Method-Override")
+                                                 String methodOverride){
+        if("PATCH".equalsIgnoreCase(methodOverride)){
+            userServ.assignBenefit(id,idBenefit,methodOverride);
+            return ResponseEntity.ok(userServ.findUserAndBenefit(id));
+        } else {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+        }
     }
 }

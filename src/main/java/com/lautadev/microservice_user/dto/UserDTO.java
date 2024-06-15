@@ -14,6 +14,7 @@ public class UserDTO {
     private String name;
     private String surname;
     private String dni;
+    private int tickets;
     private BenefitDTO benefit;
 
     public UserDTO(User user, BenefitDTO benefitDTO) {
@@ -21,6 +22,7 @@ public class UserDTO {
         this.name = user.getName();
         this.surname = user.getSurname();
         this.dni = user.getDni();
+        this.tickets = user.getTickets();
         this.benefit = benefitDTO;
     }
 }

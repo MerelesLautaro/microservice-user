@@ -1,6 +1,7 @@
 package com.lautadev.microservice_user.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -35,7 +36,10 @@ public class User {
     @Past // se asegura que la fecha sea en "pasado"
     private LocalDate dateOfBirth;
     @NotBlank
+    @Email
     private String email;
+    @NotBlank
+    private String password;
     @NotBlank
     private String province;
     @NotBlank
@@ -47,4 +51,5 @@ public class User {
     @NotBlank
     private String zipCode;
     private Long idBenefit;
+    private int tickets;
 }
