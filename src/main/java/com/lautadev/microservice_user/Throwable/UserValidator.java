@@ -18,6 +18,14 @@ public class UserValidator {
         this.validator = factory.getValidator();
     }
 
+    public boolean isEligibleForBenefit(User user) {
+        return user.getIdBenefit() != null;
+    }
+
+    public boolean hasBenefit(User user) {
+        return user.getIdBenefit() == null;
+    }
+
     public void validate(User user) {
         if (user == null) {
             throw new UserException("User cannot be null");

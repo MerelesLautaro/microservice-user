@@ -1,5 +1,6 @@
 package com.lautadev.microservice_user.service;
 
+import com.lautadev.microservice_user.Throwable.UserException;
 import com.lautadev.microservice_user.Throwable.UserValidator;
 import com.lautadev.microservice_user.dto.BenefitDTO;
 import com.lautadev.microservice_user.dto.UserDTO;
@@ -11,22 +12,29 @@ import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class UserService implements IUserService {
-    @Autowired
-    private IUserRepository userRepo;
+
+    private final IUserRepository userRepo;
+    private final IBenefitAPIClient benefitClient;
+    private final UserValidator validator;
+    private final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
-    private IBenefitAPIClient benefitClient;
-
-    @Autowired
-    private UserValidator validator;
+    public UserService(IUserRepository userRepo, IBenefitAPIClient benefitClient, UserValidator validator) {
+        this.userRepo = userRepo;
+        this.benefitClient = benefitClient;
+        this.validator = validator;
+    }
 
     @Override
+    @Transactional
     public void saveUser(User user) {
         validator.validate(user);
         userRepo.save(user);
@@ -43,17 +51,18 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         userRepo.deleteById(id);
     }
 
     @Override
+    @Transactional
     public void editUser(Long id,User user) {
         validator.validate(user);
         User userEdit = this.findUser(id);
         BeanUtils.copyProperties(user, userEdit, "idUser");
-
-        this.saveUser(user);
+        this.saveUser(userEdit);
     }
 
     @Override
@@ -65,34 +74,40 @@ public class UserService implements IUserService {
         return new UserDTO(user,benefitDTO);
     }
 
-
     public UserDTO fallBackForInfoUserBenefit(Throwable throwable) {
         return new UserDTO();
     }
 
     @Override
+    @Transactional
     public void updateTickets(Long id, int ticket,String methodOverride) {
         User user = this.findUser(id);
-        if(user.getIdBenefit() != null) {
+        if(validator.isEligibleForBenefit(user)) {
             int currentTickets = user.getTickets();
             currentTickets -= ticket;
             user.setTickets(currentTickets);
             this.saveUser(user);
-            System.out.println("El valor de ticket es: "+ticket);
         }
     }
 
     @Override
     @CircuitBreaker(name="microservice-benefit",fallbackMethod = "fallBackForInfoUserBenefit")
     @Retry(name="microservice-benefit")
+    @Transactional
     public void assignBenefit(Long idUser, Long idBenefit,String methodOverride) {
         User user = this.findUser(idUser);
-        if(user.getIdBenefit()==null) {
+        if(validator.hasBenefit(user)) {
             user.setIdBenefit(idBenefit);
             BenefitDTO benefitDTO = benefitClient.findBenefit(idBenefit);
             user.setTickets(benefitDTO.getTickets());
             this.saveUser(user);
+        } else {
+            throw new UserException("User already has a benefit.");
         }
+    }
+
+    public void fallBackForInfoUserBenefit(Long idUser, Long idBenefit, String methodOverride, Throwable throwable) {
+        logger.error("Error occurred in assignBenefit with idUser: {}, idBenefit: {}, methodOverride: {}", idUser, idBenefit, methodOverride, throwable);
     }
 
 }
