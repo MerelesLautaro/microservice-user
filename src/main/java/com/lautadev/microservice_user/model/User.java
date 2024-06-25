@@ -41,6 +41,8 @@ public class User {
     @NotBlank
     private String password;
     @NotBlank
+    private String country;
+    @NotBlank
     private String province;
     @NotBlank
     private String departament;

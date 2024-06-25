@@ -15,4 +15,5 @@ public interface IUserService {
     public UserDTO findUserAndBenefit(Long id);
     public void assignBenefit(Long idUser, Long idBenefit,String methodOverride);
     public void updateTickets(Long id, int ticket,String methodOverride);
+    public User loginUser(String email, String password);
 }

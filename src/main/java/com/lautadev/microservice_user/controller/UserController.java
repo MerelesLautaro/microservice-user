@@ -24,6 +24,12 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<User> loginUser(@RequestParam String email, @RequestParam String password){
+        User user = userServ.loginUser(email, password);
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
     @GetMapping("/get")
     public ResponseEntity<List<User>> getUsers(){
         return ResponseEntity.ok(userServ.getUsers());

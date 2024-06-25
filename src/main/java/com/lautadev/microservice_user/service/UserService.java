@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService implements IUserService {
@@ -88,6 +89,26 @@ public class UserService implements IUserService {
             user.setTickets(currentTickets);
             this.saveUser(user);
         }
+    }
+
+    @Override
+    public User loginUser(String email, String password) {
+        Optional<User> optionalUser = getUsers().stream()
+                .filter(user -> user.getEmail().equals(email))
+                .findFirst();
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            // Validar la contraseña
+            if (validator.validatePassword(password, user.getPassword())) {
+                return user; // Autenticación exitosa
+            } else {
+                throw new UserException("Contraseña incorrecta");
+            }
+        } else {
+            throw new UserException("Usuario no encontrado");
+        }
+
     }
 
     @Override

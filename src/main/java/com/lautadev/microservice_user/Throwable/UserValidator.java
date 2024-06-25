@@ -18,6 +18,10 @@ public class UserValidator {
         this.validator = factory.getValidator();
     }
 
+    public boolean validatePassword(String providedPassword, String storedPassword) {
+        return providedPassword.equals(storedPassword);
+    }
+
     public boolean isEligibleForBenefit(User user) {
         return user.getIdBenefit() != null;
     }
